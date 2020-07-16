@@ -30,7 +30,7 @@ std::thread_local! {
 }
 
 impl ThreadState {
-    pub fn instance(&mut self, instance: &WasmMacro) -> (&Module, &Instance) {
+    pub fn instance(&mut self, instance: &WasmMacro<'_>) -> (&Module, &Instance) {
         let id = instance.id();
         let entry = match self.instances.entry(id) {
             Entry::Occupied(e) => return (&self.modules[&id], e.into_mut()),
@@ -46,7 +46,7 @@ impl ThreadState {
     }
 }
 
-pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
+pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro<'_>) -> TokenStream {
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         let (module, instance) = state.instance(instance);
@@ -114,7 +114,7 @@ impl<'a> Exports<'a> {
     }
 }
 
-fn call(func: &FuncRef, args: &[Val]) -> Val {
+fn call(func: &FuncRef<'_>, args: &[Val]) -> Val {
     match func.call(args) {
         Ok(ret) => {
             assert_eq!(ret.len(), 1);

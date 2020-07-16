@@ -183,6 +183,7 @@
 //! interpreter.
 //!
 //! [Rust-WASM]: https://github.com/yblein/rust-wasm
+#![deny(rust_2018_idioms)]
 
 extern crate proc_macro;
 
@@ -223,12 +224,12 @@ use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 /// static WASM: &[u8] = include_bytes!("my_macros.wasm");
 /// # };
 /// ```
-pub struct WasmMacro {
-    wasm: &'static [u8],
+pub struct WasmMacro<'bytecode> {
+    wasm: &'bytecode [u8],
     id: AtomicUsize,
 }
 
-impl WasmMacro {
+impl<'bytecode> WasmMacro<'bytecode> {
     /// Creates a new `WasmMacro` from the statically included blob of wasm bytes.
     ///
     /// # Examples
@@ -239,7 +240,7 @@ impl WasmMacro {
     /// static WASM: &[u8] = include_bytes!("my_macros.wasm");
     /// # };
     /// ```
-    pub const fn new(wasm: &'static [u8]) -> WasmMacro {
+    pub const fn new(wasm: &'bytecode [u8]) -> Self {
         WasmMacro {
             wasm,
             id: AtomicUsize::new(0),

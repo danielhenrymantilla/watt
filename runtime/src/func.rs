@@ -1,15 +1,15 @@
 use super::{HostFunc, Interpreter, Store, Value};
 
 pub trait WasmArg: Sized {
-    fn pop(interp: &mut Interpreter) -> Self;
+    fn pop(interp: &mut Interpreter<'_>) -> Self;
 }
 
 pub trait WasmRet: Sized {
-    fn push(interp: &mut Interpreter, val: Self);
+    fn push(interp: &mut Interpreter<'_>, val: Self);
 }
 
 impl WasmArg for u32 {
-    fn pop(interp: &mut Interpreter) -> Self {
+    fn pop(interp: &mut Interpreter<'_>) -> Self {
         match interp.pop().unwrap() {
             Value::I32(v) => v,
             _ => panic!("unexpected value on wasm stack"),
@@ -18,13 +18,13 @@ impl WasmArg for u32 {
 }
 
 impl WasmRet for u32 {
-    fn push(interp: &mut Interpreter, val: Self) {
+    fn push(interp: &mut Interpreter<'_>, val: Self) {
         interp.push(Value::I32(val));
     }
 }
 
 impl WasmRet for () {
-    fn push(interp: &mut Interpreter, val: Self) {
+    fn push(interp: &mut Interpreter<'_>, val: Self) {
         let _ = interp;
         let _ = val;
     }

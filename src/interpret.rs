@@ -26,7 +26,7 @@ std::thread_local! {
 }
 
 impl ThreadState {
-    pub fn instance(&mut self, instance: &WasmMacro) -> &ModuleInst {
+    pub fn instance(&mut self, instance: &WasmMacro<'_>) -> &ModuleInst {
         let id = instance.id();
         let entry = match self.instances.entry(id) {
             Entry::Occupied(e) => return e.into_mut(),
@@ -43,7 +43,7 @@ impl ThreadState {
     }
 }
 
-pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro) -> TokenStream {
+pub fn proc_macro(fun: &str, inputs: Vec<TokenStream>, instance: &WasmMacro<'_>) -> TokenStream {
     STATE.with(|state| {
         let state = &mut state.borrow_mut();
         let instance = state.instance(instance);
@@ -117,7 +117,7 @@ fn extern_vals(module: &Module, store: &mut Store) -> Vec<ExternVal> {
         .collect()
 }
 
-fn mk_host_func(import: Import, store: &mut Store) -> ExternVal {
+fn mk_host_func(import: Import<'_>, store: &mut Store) -> ExternVal {
     let (module, name, ref sig) = import;
     assert_eq!(module, "watt-0.4", "Wasm import from unknown module");
     let func = match sig {

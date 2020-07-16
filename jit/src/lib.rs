@@ -48,14 +48,14 @@ pub mod current_memory {
 
     std::thread_local!(static CURRENT: Cell<*const MemoryRef<'static>> = Cell::new(ptr::null()));
 
-    pub fn with<R>(f: impl FnOnce(&MemoryRef) -> R) -> R {
+    pub fn with<R>(f: impl FnOnce(&MemoryRef<'_>) -> R) -> R {
         CURRENT.with(|c| {
             assert!(!c.get().is_null());
             unsafe { f(&*c.get()) }
         })
     }
 
-    pub fn set<R>(mem: &MemoryRef, f: impl FnOnce() -> R) -> R {
+    pub fn set<R>(mem: &MemoryRef<'_>, f: impl FnOnce() -> R) -> R {
         struct Reset<'a, T: Copy>(T, &'a Cell<T>);
 
         impl<T: Copy> Drop for Reset<'_, T> {

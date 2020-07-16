@@ -60,7 +60,7 @@ fn require(b: bool) -> Option<()> {
     }
 }
 
-fn pop_operand(operands: &mut Vec<Operand>, frames: &[Frame]) -> Option<Operand> {
+fn pop_operand(operands: &mut Vec<Operand>, frames: &[Frame<'_>]) -> Option<Operand> {
     debug_assert!(
         !frames.is_empty(),
         "validation of instructions should always happen in a frame"
@@ -82,7 +82,7 @@ fn pop_operand(operands: &mut Vec<Operand>, frames: &[Frame]) -> Option<Operand>
 
 fn pop_expected(
     operands: &mut Vec<Operand>,
-    frames: &[Frame],
+    frames: &[Frame<'_>],
     expected: Operand,
 ) -> Option<Operand> {
     let actual = pop_operand(operands, frames)?;
@@ -97,7 +97,7 @@ fn pop_expected(
 
 fn exact_step(
     operands: &mut Vec<Operand>,
-    frames: &[Frame],
+    frames: &[Frame<'_>],
     from: &[types::Value],
     to: &[types::Value],
 ) -> Option<()> {
@@ -126,7 +126,7 @@ fn push_frame<'a>(
     });
 }
 
-fn pop_frame(frames: &mut Vec<Frame>, operands: &mut Vec<Operand>) -> Option<()> {
+fn pop_frame(frames: &mut Vec<Frame<'_>>, operands: &mut Vec<Operand>) -> Option<()> {
     debug_assert!(
         !frames.is_empty(),
         "validation of instructions should always happen in a frame"
@@ -141,7 +141,7 @@ fn pop_frame(frames: &mut Vec<Frame>, operands: &mut Vec<Operand>) -> Option<()>
     require(frame.init_len == operands.len() - end_type_len)
 }
 
-fn unreachable(frames: &mut Vec<Frame>, operands: &mut Vec<Operand>) {
+fn unreachable(frames: &mut Vec<Frame<'_>>, operands: &mut Vec<Operand>) {
     debug_assert!(
         !frames.is_empty(),
         "validation of instructions should always happen in a frame"
@@ -166,7 +166,7 @@ fn get_label<'a>(frames: &[Frame<'a>], nesting_levels: u32) -> Option<&'a [types
 }
 
 fn check_const_expr(
-    mod_ctx: &ModContext,
+    mod_ctx: &ModContext<'_>,
     instrs: &[ast::Instr],
     result: types::Value,
 ) -> Option<()> {
@@ -190,7 +190,7 @@ fn check_const_expr(
 /// Check that the instruction sequence `instrs` is valid and has type `end_type`.
 /// The result is left on the stack.
 fn check_expr<'a>(
-    mod_ctx: &ModContext,
+    mod_ctx: &ModContext<'_>,
     func_ctx: &FuncContext,
     operands: &mut Vec<Operand>,
     frames: &mut Vec<Frame<'a>>,
@@ -208,7 +208,7 @@ fn check_expr<'a>(
 }
 
 fn check_instr<'a>(
-    mod_ctx: &ModContext,
+    mod_ctx: &ModContext<'_>,
     func_ctx: &FuncContext,
     operands: &mut Vec<Operand>,
     frames: &mut Vec<Frame<'a>>,
@@ -418,7 +418,7 @@ fn check_instr<'a>(
     Some(())
 }
 
-fn check_mem_op<T, F>(mod_ctx: &ModContext, load_op: &ast::MemOp<T>, get_size: F) -> Option<()>
+fn check_mem_op<T, F>(mod_ctx: &ModContext<'_>, load_op: &ast::MemOp<T>, get_size: F) -> Option<()>
 where
     F: Fn(&T) -> u32,
 {
@@ -438,7 +438,7 @@ where
 
 fn check_convert_op(
     operands: &mut Vec<Operand>,
-    frames: &mut Vec<Frame>,
+    frames: &mut Vec<Frame<'_>>,
     convert_op: &ast::ConvertOp,
 ) -> Option<()> {
     use super::ast::ConvertOp::*;
@@ -454,7 +454,7 @@ fn check_convert_op(
     }
 }
 
-fn check_func(mod_ctx: &ModContext, func: &ast::Func) -> Option<()> {
+fn check_func(mod_ctx: &ModContext<'_>, func: &ast::Func) -> Option<()> {
     // TODO: cache those vectors to reuse allocated memory
     let mut frames = Vec::new();
     let mut operands = Vec::new();
@@ -507,11 +507,11 @@ fn check_memory(mem: &ast::Memory) -> Option<()> {
     check_limits(&mem.type_.limits)
 }
 
-fn check_global(mod_ctx: &ModContext, global: &ast::Global) -> Option<()> {
+fn check_global(mod_ctx: &ModContext<'_>, global: &ast::Global) -> Option<()> {
     check_const_expr(mod_ctx, &global.value, global.type_.value)
 }
 
-fn check_elem(mod_ctx: &ModContext, elem: &ast::Segment<ast::Index>) -> Option<()> {
+fn check_elem(mod_ctx: &ModContext<'_>, elem: &ast::Segment<ast::Index>) -> Option<()> {
     let _ = mod_ctx.tables.get(elem.index as usize)?;
     for index in &elem.init {
         let _ = mod_ctx.funcs.get(*index as usize)?;
@@ -519,17 +519,17 @@ fn check_elem(mod_ctx: &ModContext, elem: &ast::Segment<ast::Index>) -> Option<(
     check_const_expr(mod_ctx, &elem.offset, Int(I32))
 }
 
-fn check_data(mod_ctx: &ModContext, data: &ast::Segment<u8>) -> Option<()> {
+fn check_data(mod_ctx: &ModContext<'_>, data: &ast::Segment<u8>) -> Option<()> {
     let _ = mod_ctx.memories.get(data.index as usize)?;
     check_const_expr(mod_ctx, &data.offset, Int(I32))
 }
 
-fn check_start(mod_ctx: &ModContext, start: ast::Index) -> Option<()> {
+fn check_start(mod_ctx: &ModContext<'_>, start: ast::Index) -> Option<()> {
     let func = mod_ctx.funcs.get(start as usize)?;
     require(func.args.is_empty() && func.result.is_empty())
 }
 
-fn check_export(mod_ctx: &ModContext, export: &ast::Export) -> Option<()> {
+fn check_export(mod_ctx: &ModContext<'_>, export: &ast::Export) -> Option<()> {
     use super::ast::ExportDesc::*;
 
     match export.desc {

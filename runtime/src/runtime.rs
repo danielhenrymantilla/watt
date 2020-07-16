@@ -32,7 +32,7 @@ pub struct GlobalInst {
 }
 
 pub type HostFunctionError = String;
-pub type HostFunc = Box<dyn Fn(&mut Interpreter) -> Option<HostFunctionError>>;
+pub type HostFunc = Box<dyn Fn(&mut Interpreter<'_>) -> Option<HostFunctionError>>;
 
 pub struct HostFuncInst {
     pub type_: types::Func,

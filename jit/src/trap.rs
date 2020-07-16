@@ -18,13 +18,13 @@ impl Trap {
 }
 
 impl Display for Trap {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(self.message().as_str(), f)
     }
 }
 
 impl Debug for Trap {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(self, f)
     }
 }
